@@ -1,88 +1,34 @@
-// Vercel Serverless Function: Feishu Bitable Proxy + Auto Token Refresh
+const FEISHU_TOKEN = "eyJhbGciOiJFUzI1NiIsImZlYXR1cmVfY29kZSI6IkZlYXR1cmVPQXV0aEpXVFNpZ25fQ04iLCJraWQiOiI3NjM1MDc3NTI4NDU3MDcxNzk1IiwidHlwIjoiSldUIn0.eyJqdGkiOiI3NjM2NDIzMTI3ODMzNTk1MDgyIiwiaWF0IjoxNzc3OTkzMzEyLCJleHAiOjE3NzgwMDA1MTIsInZlciI6InYxIiwidHlwIjoiYWNjZXNzX3Rva2VuIiwiY2xpZW50X2lkIjoiY2xpX2E5Nzg4MjA1YTVmOGRiYzQiLCJzY29wZSI6ImF1dGg6dXNlci5pZDpyZWFkIGJhc2U6YXBwOmNvcHkgYmFzZTphcHA6Y3JlYXRlIGJhc2U6YXBwOnJlYWQgYmFzZTphcHA6dXBkYXRlIGJhc2U6ZmllbGQ6Y3JlYXRlIGJhc2U6ZmllbGQ6ZGVsZXRlIGJhc2U6ZmllbGQ6cmVhZCBiYXNlOmZpZWxkOnVwZGF0ZSBiYXNlOnJlY29yZDpjcmVhdGUgYmFzZTpyZWNvcmQ6ZGVsZXRlIGJhc2U6cmVjb3JkOnJldHJpZXZlIGJhc2U6cmVjb3JkOnVwZGF0ZSBiYXNlOnRhYmxlOmNyZWF0ZSBiYXNlOnRhYmxlOnJlYWQgYmFzZTp0YWJsZTp1cGRhdGUgYml0YWJsZTphcHA6cmVhZG9ubHkiLCJhdXRoX2lkIjoiNzYzNjQyMzEwMjI4ODY0NTMyOSIsImF1dGhfdGltZSI6MTc3Nzk5MzMxMSwiYXV0aF9leHAiOjE4MDk1MjkzMTEsInVuaXQiOiJldV9uYyIsInRlbmFudF91bml0IjoiZXVfbmMiLCJvcGFxdWUiOnRydWUsImVuYyI6IkFpUWtBUUVDQU1JREFBRUJBd0FDQVEwQUF3c0xBQUFBQUFXQUFBQURHWldGMGRYSmxBQUFBRUc5aGRYUm9YMjl3WVhGMVpWOXFkM1FBQUFBSVZHVnVZVzUwU1dRQUFBQUJNQUFBQUFSV1FXMWxBQUFBQ2pFM056YzROVEk0TURBUEFBUU1BQUFBQVFvQUFXTEZJbG12Z0FBaUN3QUNBQUFBREpsUXArWXdldmhpZG5OS2d3c0FBd0FBQUREbHpmUVlVeUYvSEpqT2lzNFBYOUVIMEVmUjh1eVM3SGZhVmV3bWQ5c09vUWNESFUrTmNuS1FLd2NtZEIrMXFHQUFDeUFGQUFBQUJXVjFYMjVqQUc3b3BMTndzU29TNVBRRk5uREhnSC9YL1k4TGFMYk9sY216OFF2TGcrVkFIYXhjRUtWUEdoTDFVWnE4b3VkWDRzU0lWZEhxWDhnc1o4Vlllb1Rxbz90VGFSMVJXOU5YYnZHWkhvUFhoUzhVd3BmZVRaWkZpSi9jNXhaUzRDcU1La2p6ZnNSUVZjZERhUGw1YjlvbnYzU1BjNVdsRmtlVDhWNGdwSVVFZnpNcURGR2lIdDI3UU1IQ0hRNDIyN1Brd1dIdHBnPT0iLCJlbmNfX3ZlciI6InYxIiwic2Vzc2lvbl9leHRyYSI6eyJpc19hbm9ueW1vdXMiOmZhbHNlLCJuZWVkX2F1dGgiOmZhbHNlLCJ2YWxpZF9mb3JfYXBwX2lkIjpmYWxzZSwiZHBvcF90aHVtYnByaW50IjoiIiwidGVuYW50X2NyZWF0ZV9zb3VyY2UiOjJ9fQ.ggrg8QmczLPENWez7qAfpyR0DTqr78-6IV-j4nwniNBY6VDq4OaVrm2IPGJZCoOZXfl4avJ5F3h0Os9uvroANQ";
 
-const FEISHU_APP_ID = 'cli_a9788205a5f8dbc4';
-const FEISHU_APP_SECRET = 'Q4Gqek3svAyoZgDXHvgOydhoPPzNPfdW';
+const COZE_API_URL = "https://q4kmq5yf.coze.site/run";
+const COZE_API_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImRlZDRlNDQ5LWRhYzYtNDljOS1hYWQyLWQwNmRhMGRlOWZkZCJ9.eyJpc3MiOiJodHRwczovL2FwaS5jb3plLmNuIiwiYXVkIjpbIndJVmdXRE1JWnR1VEtGSUZuYVRwV0R0VE9PZVp6S0dzIl0sImV4cCI6ODIxMDI2Njg3Njc5OSwiaWF0IjoxNzc4MDYzMTc0Iiwic3ViIjoic3BpZmZlOi8vYXBpLmNveGUuY24vd29ya2xvYWRfaWRlbnRpdHkvaWQ6NzYzNjY5MjY2Mzc4NTIyNjI4MyIsInNyYyI6ImluYm91bmRfYXV0aF9hY2Nlc3NfdG9rZW5faWQ6NzYzNjc3MjMxODM5Mjc2ODkyMzEifQ.k_Z7_RrNcd1yiP-uzJI9WYWaUWt4P0XupKzZncWoWX7AOmyysAq35Hl13WDnQU7NKuMSKX4C6yEvZwu2drVFIMzyGujik5QTW6eXweFp_LwRXNJVd-WzoiaogdFqXWifQ5PdtMQNRuh25zrh2b2Qzd47lQ98HoLcJuhtIaB46UkvD8Y9_oQvLfxkx5BwVcAvc8QJrBRUBOZC93W-zEKVrvHKER4tmd_JwNitdpa-ApjRR_cVhVfvrtIV0UqKJHAC3v5DaMWUzhIAEJcLjBmapb1tEk5ihxDG4AFq_cmz4Z-PCzJFNa5MlNCHLBhtyLt8ZhoaixF_XDnERCI_Mnha0Q";
 
-let cachedToken = null;
-
-async function getFeishuAccessToken() {
-  if (cachedToken && Date.now() < cachedToken.expires_at - 5 * 60 * 1000) {
-    return cachedToken.access_token;
+module.exports = async (req, res) => {
+  if (req.method !== "POST") {
+    return res.status(405).json({ success: false, error: "Method not allowed" });
   }
-  const resp = await fetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ app_id: FEISHU_APP_ID, app_secret: FEISHU_APP_SECRET }),
-  });
-  const data = await resp.json();
-  if (!data.tenant_access_token) {
-    throw new Error('Failed to get token: ' + data.msg);
-  }
-  cachedToken = {
-    access_token: data.tenant_access_token,
-    expires_at: Date.now() + 2 * 60 * 60 * 1000,
-  };
-  return cachedToken.access_token;
-}
-
-const TABLES = [
-  { appToken: 'LCJ8bwmHjaBWn4srlRDcBrUpnJg', tableId: 'tblMeoPn2aM3M08c', name: '话题人设分析' },
-  { appToken: 'X243btCH0ajsZMsouTNcDhz9nkh', tableId: 'tbly7LcBqLOSf6UT', name: '痛点分析裂变' },
-  { appToken: 'QnSEb93LAaXB3lshFPccmP0KnUc', tableId: 'tblqdat1ieqUHjM3', name: '爆款选题库' },
-];
-
-async function searchTable(accessToken, table, topic) {
-  const resp = await fetch(
-    `https://open.feishu.cn/open-apis/bitable/v1/apps/${table.appToken}/tables/${table.tableId}/records/search`,
-    {
-      method: 'POST',
+  try {
+    const { topic_keyword, content_perspective, table1, table2, table3 } = req.body;
+    
+    // Call Coze API
+    const cozeResponse = await fetch(COZE_API_URL, {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${COZE_API_TOKEN}`,
       },
       body: JSON.stringify({
-        filter: {
-          conjunction: 'or',
-          conditions: [
-            { field_name: '话题', operator: 'contains', value: [topic] },
-            { field_name: '关键词', operator: 'contains', value: [topic] },
-            { field_name: '选题', operator: 'contains', value: [topic] },
-          ],
-        },
-        page_size: 10,
+        topic_keyword,
+        content_perspective,
+        table1,
+        table2,
+        table3,
       }),
-    }
-  );
-  const data = await resp.json();
-  return data?.data?.items ?? [];
-}
-
-module.exports = async function handler(req, res) {
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
-  }
-
-  const { topic, view } = req.body || {};
-  if (!topic) {
-    return res.status(400).json({ success: false, error: 'Missing topic' });
-  }
-
-  try {
-    const accessToken = await getFeishuAccessToken();
-    const results = {};
-    for (const table of TABLES) {
-      results[table.name] = await searchTable(accessToken, table, topic);
-    }
-    return res.status(200).json({ success: true, data: results });
-  } catch (e) {
-    return res.status(500).json({ success: false, error: String(e) });
+    });
+    
+    const cozeData = await cozeResponse.json();
+    res.json(cozeData);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 };
