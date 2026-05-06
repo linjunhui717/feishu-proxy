@@ -1,0 +1,10 @@
+name = "feishu-proxy"
+compatibility_date = "2026-05-06"
+main = "feishu-proxy.js"
+account_id = "38f5e4d0cf8c139306a1a335268f4519"
+
+# Route - use a custom route (leave empty for now, we'll add via dashboard)
+# routes = []
+
+[env.production]
+name = "feishu-proxy"
